@@ -1,6 +1,7 @@
 ﻿using DatingApp.API.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -21,7 +22,18 @@ namespace DatingApp.API
             services.AddDbContext<DataContext>(x => x.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<IAuthRepository, AuthRepository>();
             services.AddCors();
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);           
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.SuppressConsumesConstraintForFormFileParameters = true;
+        options.SuppressInferBindingSourcesForParameters = true;
+        options.SuppressModelStateInvalidFilter = true;
+        options.SuppressMapClientErrors = true;
+
+        options.ClientErrorMapping[404].Link =
+            "https://httpstatuses.com/404";
+    });
+
         }
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
@@ -30,9 +42,10 @@ namespace DatingApp.API
             {
                 app.UseDeveloperExceptionPage();
             }
-            app.UseStatusCodePages();
+           // app.UseStatusCodePages();
             app.UseCors(x=>x.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
             app.UseMvc();
+           
             
         }
     }
